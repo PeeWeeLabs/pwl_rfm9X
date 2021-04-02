@@ -42,6 +42,7 @@ Provide one of the values enumerated by the lora_cr_t type.  See the pwl_rfm9X f
 ##### LORA_SPREADING_FACTOR
 Provide one of the values enumerated by the lora_sf_t type.  See the pwl_rfm9X for the possible values.
 
+---
 **NOTE:** For the **LORA_XXX** parameters, see one of numerous LoRa primers on the web.  Generally these will tradeoff between data rate and reliability.
 ## Transmit
 
