@@ -31,7 +31,6 @@ IMPORTANT NOTE:  This driver uses the SPI read write functions provided above.  
                           lora_cr_t LORA_CODE_RATE,
                           lora_sf_t LORA_SPREADING_FACTOR);
 #### The initialization parameters:
-For the LORA_... parameters, see one of numerous LoRa primers on the web.  Generally these will tradeoff between data rate and reliability.
 ##### RADIO_FREQ
 The carrier (center) frequency on which the radio will transmit and receive packet data.  Please see your radio's documentation for the valid range of this parameter.
 ##### RADIO_POWER
@@ -42,6 +41,8 @@ Provide one of the values enumerated by the lora_bw_t type.  See the pwl_rfm9X f
 Provide one of the values enumerated by the lora_cr_t type.  See the pwl_rfm9X for the possible values.
 ##### LORA_SPREADING_FACTOR
 Provide one of the values enumerated by the lora_sf_t type.  See the pwl_rfm9X for the possible values.
+
+**NOTE:** For the **LORA_XXX** parameters, see one of numerous LoRa primers on the web.  Generally these will tradeoff between data rate and reliability.
 ## Transmit
 
         int send(uint8_t* data, uint8_t len);
