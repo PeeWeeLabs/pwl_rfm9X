@@ -1,4 +1,4 @@
-# Simple RFM 9X LoRa Driver
+# Simple RFM95 LoRa Driver
 
 Copyright © PeeWee Labs, All Rights Reserved.  Licensed under the MIT License, see the LICENSE file in the root of this repository.
 
@@ -64,3 +64,9 @@ If no packet is available when this function is called, the return value is zero
 If a packet is received and copied, then *len is updated to reflect the number of bytes that were copied into *buf.  The return value is also the number of bytes received.
 
 NOTE:  This function is non-blocking.  It will not wait for a packet to be received.  It must be called repeatedly until it returns a non-zero value.
+## Tested With
+This driver has been tested on the following platforms:
+
+ - Arduino Nano + RFM95 module
+ - Moteino with RFM95
+ - ATTiny 1614 + RFM95w module
