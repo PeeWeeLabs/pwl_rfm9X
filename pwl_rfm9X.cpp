@@ -20,7 +20,7 @@ uint8_t PWL_RFM9X::_read_byte(uint8_t addr)
 
 int PWL_RFM9X::_write_byte(uint8_t addr, uint8_t data)
 {
-    int rval = _write_func(addr, &data, 1);
+    int rval = _write_func(addr | 0x80, &data, 1);
     return rval;
 }
 
@@ -124,6 +124,7 @@ int PWL_RFM9X::poll( )
     int32_t  i32;
 
     iflags = _read_byte(RFM9X_REG_IrqFlags);
+    _write_byte(RFM9X_REG_IrqFlags, iflags);
 #ifdef PWL_RFM9X_DEBUG
     Serial.print("Poll: ");
     Serial.print(iflags, HEX);
@@ -131,17 +132,28 @@ int PWL_RFM9X::poll( )
     Serial.print(_mode, HEX);
     Serial.print(" ");
     Serial.println(_read_byte(RFM9X_REG_OpMode) & 0x07, HEX);
+    delay(100);
 #endif
-    _write_byte(RFM9X_REG_IrqFlags, iflags);
     iflags &= PWL_RFM9X_INTERRUPT_STATUS_MASK;
     if (!iflags) return PWL_RFM9X_POLL_NO_STATUS;
 
-
     if (_mode == RFM9X_LORA_MODE_RX_CONTINUOUS)
     {
-        // Expecting a CRC to be a part of any received packet
-        if ( ((_read_byte(RFM9X_REG_HopChannel) & 0b01000000) == 0)
-            || ((iflags & PWL_RFM9X_RX_INTERRUPT_MASK) != 0b01000000) )
+        if (!(iflags & PWL_RFM9X_RX_DONE_INTERRUPT_FLAG))
+        {
+            // It is an error condition to be in this if statement
+            // since while in the RX, any interrupt that gets us here
+            // should include the RX Done flag.  So, to recover,
+            // simply return to Standby and Restart the RX
+            set_mode(RFM9X_LORA_MODE_STDBY);
+            set_mode(RFM9X_LORA_MODE_RX_CONTINUOUS);
+            return PWL_RFM9X_POLL_RX_ERROR;
+        }
+
+        // RX is done... check that we have a valid CRC
+        // If not, then restart the RX process and wait for another packet
+        if (((_read_byte(RFM9X_REG_HopChannel) & 0b01000000) == 0)
+            || (iflags & PWL_RFM9X_RX_CRC_ERROR_FLAG) )
         {
             set_mode(RFM9X_LORA_MODE_STDBY);
             set_mode(RFM9X_LORA_MODE_RX_CONTINUOUS);
@@ -219,7 +231,7 @@ int PWL_RFM9X::send(uint8_t* data, uint8_t len)
 {
     set_mode(RFM9X_LORA_MODE_STDBY);
     _write_byte(RFM9X_REG_FifoAddrPtr, 0);
-    _write_func(RFM9X_REG_Fifo, data, len);
+    _write_func(RFM9X_REG_Fifo | 0x80, data, len);
     _write_byte(RFM9X_REG_PayloadLength, len);
     set_mode(RFM9X_LORA_MODE_TX);
     return PWL_RFM9X_STATUS_GOOD;

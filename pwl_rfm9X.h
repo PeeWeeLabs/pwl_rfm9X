@@ -38,7 +38,7 @@ typedef int (*pwl_rfm9X_reg_rwr_fptr_t)(uint8_t reg_addr, uint8_t *reg_data, uin
 typedef void (*pwl_rfm9X_ms_delay_t)(uint32_t ms_count);
 
 
-// The radio can handle packet sizes up to 256 bytes long
+// The radio can handle packet sizes up to 255 bytes long
 // If you don't intend to send packets that long you can
 // adjust/define this to a smaller value that will save
 // some memory space.
@@ -81,9 +81,10 @@ protected:
     bool     _rx_valid;
 
     enum {
-        PWL_RFM9X_INTERRUPT_STATUS_MASK = 0b01101000,
-        PWL_RFM9X_RX_INTERRUPT_MASK     = 0b11100000,
-        PWL_RFM9X_TX_INTERRUPT_MASK     = 0b00001000
+        PWL_RFM9X_INTERRUPT_STATUS_MASK  = 0b01101000,
+        PWL_RFM9X_RX_DONE_INTERRUPT_FLAG = 0b01000000,
+        PWL_RFM9X_RX_CRC_ERROR_FLAG      = 0b00100000,
+        PWL_RFM9X_TX_INTERRUPT_MASK      = 0b00001000
     };
 
     enum {
@@ -181,8 +182,11 @@ public:
 
 
     enum lora_sf_t {
-        RFM9X_LORA_SF_64 = 6,          // 0x06
-        RFM9X_LORA_SF_128,             // 0x07
+        // Currently this driver supports only explicit header mode
+        // Setting the spreading factor to 6 is no compatible with 
+        // explicit header mode... so no support.
+        // RFM9X_LORA_SF_64 = 6,       // 0x06
+        RFM9X_LORA_SF_128 = 7,         // 0x07
         RFM9X_LORA_SF_256,             // 0x08
         RFM9X_LORA_SF_512,             // 0x09
         RFM9X_LORA_SF_1024,            // 0x0A
@@ -191,14 +195,14 @@ public:
     };
 
     enum lora_mode_t {
-        RFM9X_LORA_MODE_SLEEP = 0x00,  // 0x80
-        RFM9X_LORA_MODE_STDBY,         // 0x81
-        RFM9X_LORA_MODE_FSTX,          // 0x82  // No support in driver
-        RFM9X_LORA_MODE_TX,            // 0x83
-        RFM9X_LORA_MODE_FSRX,          // 0x84  // No support in driver
-        RFM9X_LORA_MODE_RX_CONTINUOUS, // 0x85
-        RFM9X_LORA_MODE_RX,            // 0x86  // No support in driver
-        RFM9X_LORA_MODE_CAD,           // 0x87  // No support in driver
+        RFM9X_LORA_MODE_SLEEP = 0x00,  // 0x00
+        RFM9X_LORA_MODE_STDBY,         // 0x01
+        RFM9X_LORA_MODE_FSTX,          // 0x02  // No support in driver
+        RFM9X_LORA_MODE_TX,            // 0x03
+        RFM9X_LORA_MODE_FSRX,          // 0x04  // No support in driver
+        RFM9X_LORA_MODE_RX_CONTINUOUS, // 0x05
+        RFM9X_LORA_MODE_RX,            // 0x06  // No support in driver
+        RFM9X_LORA_MODE_CAD,           // 0x07  // No support in driver
         RFM9X_LORA_MODE_INVALID = 0xFF
     };
 
