@@ -61,8 +61,11 @@ int PWL_RFM9X::set_mode(lora_mode_t mode)
 
     _write_byte(RFM9X_REG_OpMode, mode_byte);
 
+    // The radio can take some time to switch into STDBY or SLEEP modes
+    // during which time it will not respond to other commands.  So give
+    // it some time here.
     if (_mode == RFM9X_LORA_MODE_SLEEP || _mode == RFM9X_LORA_MODE_STDBY)
-        _delay_func(10);
+        _delay_func(25);
 
     return PWL_RFM9X_STATUS_GOOD;
 }
@@ -163,7 +166,7 @@ int PWL_RFM9X::poll( )
         _rxlength = _read_byte(RFM9X_REG_RxNbBytes);
         caddr = _read_byte(RFM9X_REG_FifoRxCurrentAddr);
         _write_byte(RFM9X_REG_FifoAddrPtr, caddr);
-        _read_func(RFM9X_REG_Fifo, _rxbuffer, _rxlength);
+        _read_func(RFM9X_REG_Fifo, _buffer, _rxlength);
 
         set_mode(RFM9X_LORA_MODE_STDBY);
 
@@ -198,24 +201,22 @@ int PWL_RFM9X::poll( )
 
 bool PWL_RFM9X::rx_data_ready()
 {
+    if (!_rx_valid)
+        if (poll() == PWL_RFM9X_POLL_NO_STATUS)
+            if ((_mode != RFM9X_LORA_MODE_RX_CONTINUOUS) && (_mode != RFM9X_LORA_MODE_FSRX))
+                set_mode(RFM9X_LORA_MODE_RX_CONTINUOUS);
     return _rx_valid;
 }
 
 
 uint8_t PWL_RFM9X::receive(uint8_t* buf, uint8_t* len)
 {
-    if (!_rx_valid)
-        if (_mode == RFM9X_LORA_MODE_RX_CONTINUOUS)
-            poll();
-        else
-            set_mode(RFM9X_LORA_MODE_RX_CONTINUOUS);
-
-    if (_rx_valid)
+    if (rx_data_ready())
     {
         uint8_t idx = 0;
         while (idx < *len && idx < _rxlength)
         {
-            buf[idx] = _rxbuffer[idx];
+            buf[idx] = _buffer[idx];
             ++idx;
         }
         *len = idx;
@@ -240,16 +241,22 @@ int PWL_RFM9X::send(uint8_t* data, uint8_t len)
 
 int PWL_RFM9X::wait_packet_tx(int max_wait_ms)
 {
-    while (_mode == RFM9X_LORA_MODE_TX)
+    while (1)
     {
         poll();
+
+        if ((_mode != RFM9X_LORA_MODE_TX) && (_mode != RFM9X_LORA_MODE_FSTX))
+            break;
+        
         --max_wait_ms;
         if (!max_wait_ms)
         {
             set_mode(RFM9X_LORA_MODE_STDBY);
             return PWL_RFM9X_STATUS_BAD;
         }
+
         _delay_func(50);
     }
+
     return PWL_RFM9X_STATUS_GOOD;
 }

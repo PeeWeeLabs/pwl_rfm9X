@@ -73,7 +73,7 @@ protected:
     pwl_rfm9X_reg_rwr_fptr_t _read_func;
     pwl_rfm9X_ms_delay_t     _delay_func;
 
-    uint8_t  _rxbuffer[PWL_RFM9X_RX_BUFFER_LEN];
+    uint8_t  _buffer[PWL_RFM9X_RX_BUFFER_LEN];
     uint8_t  _rxlength;
     volatile uint8_t  _mode;
     volatile int16_t  _rssi;
