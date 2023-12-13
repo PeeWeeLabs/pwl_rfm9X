@@ -12,13 +12,16 @@
 #include <pwl_rfm9X.h>
 #include <SPI.h>
 
+#if defined(__AVR_ATtiny1614__)
+  #define RADIO_SLAVE_SELECT  1  // PeeWee Labs Battery Prototype board has SPI Slave Select on PA5
+#else
+  #define RADIO_SLAVE_SELECT  SS
+#endif
+
 #define RADIO_FREQ_HZ    915000000 // US ISM => 902M to 928M
 #define RADIO_POWER_dBm  13        // Set between 5 and 20 dBm
 
 #define SERIAL_BAUD   115200
-
-// SPI Slave Select Which pin is connected to the radio's NSS pin
-#define RADIO_SLAVE_SELECT  SS
 
 // The pwl_rfm9X library requires us to provide the register read
 // and write functions.
@@ -41,7 +44,7 @@ int rf95_reg_write(uint8_t reg_addr, uint8_t *data, uint32_t len)
 {
     uint32_t idx;
     digitalWrite(RADIO_SLAVE_SELECT, LOW);
-    SPI.transfer(reg_addr | 0x80);
+    SPI.transfer(reg_addr);
     for (idx = 0; idx < len; idx++)
     {
         SPI.transfer(data[idx]);

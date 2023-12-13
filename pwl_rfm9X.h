@@ -17,7 +17,7 @@
 #ifndef _PWL_RFM9X_H
 #define _PWL_RFM9X_H
 
-#ifdef __AVR__
+#if defined(__AVR__) || defined(ESP32)
 #include <Arduino.h>
 #else
     #error You need to provide the "uintXX_t" data types

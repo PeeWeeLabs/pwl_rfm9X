@@ -178,9 +178,9 @@ int PWL_RFM9X::poll( )
         else
             i32 += snr;
         if (_freq <= 525000000) // LF output
-            _rssi = (int8_t)(i32 - 164);
+            _rssi = (int16_t)(i32 - 164);
         else
-            _rssi = (int8_t)(i32 - 157);
+            _rssi = (int16_t)(i32 - 157);
 
         _rx_valid = true;
 
